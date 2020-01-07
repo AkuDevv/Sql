@@ -105,3 +105,68 @@ END LOOP;
 CLOSE emp_cursor;
 
 END ;
+-- Exercice9
+declare
+employee_count int :=0;
+begin 
+    select count(employee_id) into employee_count from employees where department_id = 30;
+    dbms_output.put_line('Nombre des emplyees dans departement 30 est : ' || employee_count);
+end;
+-- Exercice10
+
+declare 
+v_salary employees.salary%type;
+v_last_name employees.last_name%type;
+v_first_name employees.first_name%type;
+v_employee_id employees.employee_id%type;
+cursor employees_cursor is select employee_id,first_name, last_name, salary from employees;
+begin
+    open employees_cursor;
+    loop
+    fetch employees_cursor into v_employee_id,v_first_name,v_last_name,v_salary;
+    if v_salary<3000 
+    then 
+    update employees 
+    set salary = v_salary + 500
+    where employee_id = v_employee_id;
+    dbms_output.put_line(v_first_name || ' ' || v_last_name || '''' || 's salary updated');
+    else 
+    dbms_output.put_line(v_first_name || ' ' || v_last_name || ' earns ' || v_salary);
+    end if;
+    exit when employees_cursor%notfound;
+    end loop;
+    close employees_cursor;
+end;
+
+-- Exercice 11
+-------------Part1
+-- 1)   
+select NomS, Horaire from Salle where titre = 'Les misérables'
+-- 2)
+select acteur from Film 
+group by acteur 
+having  count(Titre) = (select count(titre) from Film);
+-- 3)
+select spectateur from Vu v group by spectateur 
+having count(titre) = (select count(titre) from Aime where v.spectateur = Amateur);
+-------------Part2
+declare 
+n_film int =: 0;
+v_realisateur Producteur.Producteur%TYPE;
+cursor realisateurs_cursor is select distinct Realisateur from realisateur;
+begin
+    open realisateurs_cursor;
+    if realisateurs_cursor%notfound
+    then 
+    dbms_output.put_line('Pas de films disponibles !!');
+    else 
+    loop
+        fetch realisateurs_cursor into v_realisateur;
+        select count(Titre) into n_film from Film f1 where exists(select * from Film f2 where f1.realisateur = f2.realisateur);
+        dbms_output.put_line('Le réalisateur :' || v_realisateur || ' à réalisé ' || n_film || 'films ');
+    exit when realisateurs_cursor%notfound;
+    end loop;
+    end if;
+    
+end;
+
